@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/pet_viewmodel.dart'; // เพิ่มบรรทัดนี้
 import 'views/login_view.dart';
 import 'views/home_view.dart';
 import 'views/callback_view.dart';
@@ -10,6 +11,7 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => PetViewModel()), // เพิ่มบรรทัดนี้
       ],
       child: const PetCareApp(),
     ),
@@ -37,7 +39,6 @@ class PetCareApp extends StatelessWidget {
   }
 }
 
-// Route Guard: ตรวจสอบความถูกต้องก่อนอนุญาตให้เข้าสู่ Dashboard[cite: 7]
 class AuthGuard extends StatelessWidget {
   const AuthGuard({super.key});
 
