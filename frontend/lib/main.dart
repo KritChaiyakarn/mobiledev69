@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/auth_viewmodel.dart';
-import 'viewmodels/pet_viewmodel.dart'; // เพิ่มบรรทัดนี้
+import 'viewmodels/pet_viewmodel.dart';
+import 'viewmodels/theme_viewmodel.dart'; // เพิ่มบรรทัดนี้
 import 'views/login_view.dart';
 import 'views/home_view.dart';
 import 'views/callback_view.dart';
@@ -11,7 +12,8 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
-        ChangeNotifierProvider(create: (_) => PetViewModel()), // เพิ่มบรรทัดนี้
+        ChangeNotifierProvider(create: (_) => PetViewModel()),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()), // เพิ่มบรรทัดนี้
       ],
       child: const PetCareApp(),
     ),
@@ -23,10 +25,24 @@ class PetCareApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeVM = context.watch<ThemeViewModel>();
+
     return MaterialApp(
       title: 'PetCare Log',
+      debugShowCheckedModeBanner: false,
+      themeMode: themeVM.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.teal,
+          brightness: Brightness.dark,
+        ),
         useMaterial3: true,
       ),
       initialRoute: '/',

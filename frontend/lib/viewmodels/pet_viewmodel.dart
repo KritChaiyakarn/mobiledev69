@@ -92,4 +92,35 @@ class PetViewModel extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  String _searchQuery = '';
+String _selectedSpecies = 'All';
+
+String get searchQuery => _searchQuery;
+String get selectedSpecies => _selectedSpecies;
+
+// คำนวณรายการสัตว์เลี้ยงหลังผ่านการกรอง (Search & Filter)
+List<Pet> get filteredPets {
+  return _pets.where((pet) {
+    final matchesSearch = pet.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        pet.species.toLowerCase().contains(_searchQuery.toLowerCase());
+    
+    final matchesSpecies = _selectedSpecies == 'All' || 
+        pet.species.toLowerCase() == _selectedSpecies.toLowerCase();
+
+    return matchesSearch && matchesSpecies;
+  }).toList();
+}
+
+// ฟังก์ชันอัปเดตค่า Search Query
+void setSearchQuery(String query) {
+  _searchQuery = query;
+  notifyListeners();
+}
+
+// ฟังก์ชันอัปเดตค่า Filter Species
+void setSelectedSpecies(String species) {
+  _selectedSpecies = species;
+  notifyListeners();
+}
 }
