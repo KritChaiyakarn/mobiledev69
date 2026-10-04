@@ -1,1 +1,131 @@
-project
+กฤษฎิ์ ไชยกาล 66114540067
+สาขาวิทยาการข้อมูลและนวัตกรรมซอฟต์แวร์ 
+DSSI-MobileDev [ 69/1 กลุ่ม 1-2]
+
+# 🐾 PetCare Log - Web Application
+
+แอปพลิเคชันสำหรับบันทึกและติดตามการดูแลสัตว์เลี้ยง พัฒนาด้วย **Flutter Web** ร่วมกับ **Django REST Framework (OIDC Provider)** บนสถาปัตยกรรม **MVVM (Model-View-ViewModel)**
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+- **Backend:** Python, Django, Django REST Framework (DRF), `django-oauth-toolkit` / `oidc-provider`
+- **Frontend:** Dart, Flutter Web (Port 50000)
+- **Architecture Pattern:** MVVM (Model-View-ViewModel) ผ่าน `provider` package
+- **Authentication:** OpenID Connect (OIDC) / OAuth2 PKCE Flow
+
+---
+
+##Features Checklist
+
+- **Authentication & OIDC:** รองรับการเข้าสู่ระบบผ่าน OIDC Server บน Django
+- **Route Guard:** มีระบบป้องกันการเข้าถึงหน้าเว็บเมื่อยังไม่ได้ยืนยันตัวตน
+- **Core CRUD Functionalities:**
+  - เพิ่ม/ลบ สัตว์เลี้ยง (Pet)
+  - เพิ่ม/ลบ และเช็คสถานะกิจกรรมการดูแล (Care Log)
+- **MVVM Architecture:** แยกส่วน Data (Model), API Handling (Service), Logic/State (ViewModel), และ UI (View) ชัดเจน
+- **Extra Features (10 คะแนนเต็ม):**
+  - **Dark / Light Mode Toggle:** ปรับเปลี่ยนธีมของแอป และจดจำค่าไว้ด้วย `SharedPreferences`
+  - **Search & Filter System:** ค้นหาชื่อสัตว์เลี้ยง และกรองตามชนิดสัตว์เลี้ยงแบบ Real-time
+
+---
+
+## ขั้นตอนการติดตั้งและการรันโปรเจกต์
+
+### 1. การเตรียมระบบ Backend (Django)
+
+```bash
+# 1. เข้าสู่โฟลเดอร์ backend
+cd backend
+
+# 2. ติดตั้ง Dependencies ด้วย uv หรือ pip
+uv sync
+# หรือ pip install -r requirements.txt
+
+# 3. รัน Database Migration
+uv run manage.py migrate
+
+# 4. รัน Server บน พอร์ต 8000
+uv run manage.py runserver 8000
+
+หมายเหตุ: Backend จะทำงานอยู่ที่ http://127.0.0.1:8000
+
+---
+
+การเตรียมระบบ Frontend (Flutter Web)
+# 1. เข้าสู่โฟลเดอร์ frontend
+cd frontend
+
+# 2. ติดตั้ง Packages
+flutter pub get
+
+# 3. รัน Flutter Web บนพอร์ต 50000
+flutter run -d chrome --web-port=50000
+
+หมายเหตุ: Frontend จะเปิดขึ้นที่ http://localhost:50000
+
+---
+
+ข้อมูลการเข้าทดสอบระบบ (Test Credentials)
+Superuser Admin: admin / password123
+
+OIDC Login URL: http://127.0.0.1:8000/openid
+
+Frontend Callback URL: http://localhost:50000/callback
+
+---
+
+โครงสร้างไดเรกทอรีโปรเจกต์ (Project Structure)
+petcare-log/
+├── backend/                  # Django REST Framework (OIDC Provider)
+│   ├── api/                  # Apps (Models, Serializers, Views)
+│   ├── backend/              # Django Settings & URLs
+│   └── manage.py
+│
+├── frontend/                 # Flutter Web Application
+│   └── lib/
+│       ├── models/           # Pet & CareLog Data Models
+│       ├── services/         # API Service & OIDC AuthService
+│       ├── viewmodels/       # Auth, Pet, and Theme ViewModels
+│       ├── views/            # Login, Home, and Dialog Screens
+│       └── main.dart         # Entry point & Route Guard
+│
+└── README.md
+
+
+---
+
+### 📍 ขั้นตอนที่ 6.2: ตรวจเช็คความพร้อมก่อน Merge และ Push งานขึ้น GitHub
+
+ให้ทำการตรวจสอบสิ่งต่าง ๆ ดังต่อไปนี้อีกครั้งเพื่อความถูกต้องเรียบร้อย:
+
+1. **Branch Check:** ตรวจสอบว่าโค้ดทั้งหมดบันทึกอยู่บน branch `project`
+2. **OIDC Client ID Check:** ตรวจสอบว่าไฟล์ `frontend/lib/services/auth_service.dart` มีการใส่ `clientId` ที่ตรงกับใน Django Admin เรียบร้อย
+3. **Port Check:** 
+   - Django รันบน `[http://127.0.0.1:8000](http://127.0.0.1:8000)`
+   - Flutter Web รันบน `http://localhost:50000`
+
+
+
+### 📍 ขั้นตอนที่ 6.3: Merge branch `project` เข้าสู่ `main` และ Push ขึ้น GitHub
+
+```powershell
+# 1. ถอยกลับมาที่ Root directory
+cd ..
+
+# 2. Add และ Commit งานทั้งหมด
+git add .
+git commit -m "Commit"
+
+# 3. Push ขึ้น branch project
+git push origin project
+
+# 4. สลับไปยัง branch main
+git checkout main
+
+# 5. รวมโค้ดจาก branch project เข้าสู่ main
+git merge project
+
+# 6. Push branch main ขึ้น GitHub
+git push origin main
