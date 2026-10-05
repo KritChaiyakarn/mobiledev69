@@ -26,7 +26,7 @@
   - เพิ่ม/ลบ สัตว์เลี้ยง (Pet)
   - เพิ่ม/ลบ และเช็คสถานะกิจกรรมการดูแล (Care Log)
 - **MVVM Architecture:** แยกส่วน Data (Model), API Handling (Service), Logic/State (ViewModel), และ UI (View) ชัดเจน
-- **Extra Features (10 คะแนนเต็ม):**
+- **Extra Features:**
   - **Dark / Light Mode Toggle:** ปรับเปลี่ยนธีมของแอป และจดจำค่าไว้ด้วย `SharedPreferences`
   - **Search & Filter System:** ค้นหาชื่อสัตว์เลี้ยง และกรองตามชนิดสัตว์เลี้ยงแบบ Real-time
 
