@@ -3,36 +3,42 @@ import '../services/auth_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
-  
-  bool _isAuthenticated = false;
-  bool _isLoading = false;
 
-  bool get isAuthenticated => _isAuthenticated;
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
   bool get isLoading => _isLoading;
+  bool get isLoggedIn => _isLoggedIn;
+
+  String? get accessToken => _authService.accessToken;
   String? get token => _authService.accessToken;
 
-  void login() {
-    _authService.login();
+  AuthViewModel() {
+    checkAuthStatus();
   }
 
-  Future<void> checkCallback() async {
+  Future<void> checkAuthStatus() async {
     _isLoading = true;
     notifyListeners();
 
-    try {
-      final success = await _authService.handleCallback();
-      _isAuthenticated = success;
-    } catch (e) {
-      _isAuthenticated = false;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    final success = await _authService.handleCallback();
+    _isLoggedIn = success || _authService.isAuthenticated;
+
+    _isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> checkCallback() async {
+    await checkAuthStatus();
+  }
+
+  Future<void> login() async {
+    await _authService.login();
   }
 
   void logout() {
     _authService.logout();
-    _isAuthenticated = false;
+    _isLoggedIn = false;
     notifyListeners();
   }
 }

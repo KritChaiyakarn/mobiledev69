@@ -16,6 +16,15 @@ class _AddPetDialogState extends State<AddPetDialog> {
   final _nameController = TextEditingController();
   final _speciesController = TextEditingController();
   final _breedController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _speciesController.dispose();
+    _breedController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +39,12 @@ class _AddPetDialogState extends State<AddPetDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'ชื่อสัตว์เลี้ยง *'),
-                validator: (val) => val == null || val.isEmpty ? 'กรุณากรอกชื่อ' : null,
+                validator: (val) => val == null || val.trim().isEmpty ? 'กรุณากรอกชื่อ' : null,
               ),
               TextFormField(
                 controller: _speciesController,
                 decoration: const InputDecoration(labelText: 'ชนิด (เช่น สุนัข, แมว) *'),
-                validator: (val) => val == null || val.isEmpty ? 'กรุณากรอกชนิด' : null,
+                validator: (val) => val == null || val.trim().isEmpty ? 'กรุณากรอกชนิด' : null,
               ),
               TextFormField(
                 controller: _breedController,
@@ -47,28 +56,54 @@ class _AddPetDialogState extends State<AddPetDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
           child: const Text('ยกเลิก'),
         ),
         ElevatedButton(
-          onPressed: () async {
-            if (_formKey.currentState!.validate()) {
-              final token = context.read<AuthViewModel>().token;
-              final newPet = Pet(
-                name: _nameController.text,
-                species: _speciesController.text,
-                breed: _breedController.text,
-              );
-              final success = await context.read<PetViewModel>().addPet(token, newPet);
-              if (mounted && success) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('เพิ่มสัตว์เลี้ยงสำเร็จ!')),
-                );
-              }
-            }
-          },
-          child: const Text('บันทึก'),
+          onPressed: _isSubmitting
+              ? null
+              : () async {
+                  if (_formKey.currentState!.validate()) {
+                    setState(() => _isSubmitting = true);
+
+                    final token = context.read<AuthViewModel>().token;
+                    
+                    if (token == null || token.isEmpty) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('ไม่พบ Token กรุณาล็อกอินใหม่อีกครั้ง')),
+                        );
+                        setState(() => _isSubmitting = false);
+                      }
+                      return;
+                    }
+
+                    final newPet = Pet(
+                      name: _nameController.text.trim(),
+                      species: _speciesController.text.trim(),
+                      breed: _breedController.text.trim().isEmpty ? null : _breedController.text.trim(),
+                    );
+
+                    final success = await context.read<PetViewModel>().addPet(token, newPet);
+
+                    if (mounted) {
+                      setState(() => _isSubmitting = false);
+                      if (success) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('เพิ่มสัตว์เลี้ยงสำเร็จ!')),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('เพิ่มสัตว์เลี้ยงไม่สำเร็จ! กรุณาเช็ค Console หรือ Log Backend')),
+                        );
+                      }
+                    }
+                  }
+                },
+          child: _isSubmitting
+              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Text('บันทึก'),
         ),
       ],
     );

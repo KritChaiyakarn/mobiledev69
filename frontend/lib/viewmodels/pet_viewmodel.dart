@@ -10,12 +10,51 @@ class PetViewModel extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  String _searchQuery = '';
+  String _selectedSpecies = 'All';
+
   List<Pet> get pets => _pets;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
+  String get searchQuery => _searchQuery;
+  String get selectedSpecies => _selectedSpecies;
+
+  // คำนวณรายการสัตว์เลี้ยงหลังผ่านการกรอง (Search & Filter)
+  List<Pet> get filteredPets {
+    return _pets.where((pet) {
+      // 1. ตรวจสอบคำค้นหา (Search Query)
+      final query = _searchQuery.trim().toLowerCase();
+      final matchesSearch = query.isEmpty ||
+          pet.name.toLowerCase().contains(query) ||
+          pet.species.toLowerCase().contains(query) ||
+          (pet.breed != null && pet.breed!.toLowerCase().contains(query));
+
+      // 2. ตรวจสอบการกรองชนิด (Species Filter)
+      bool matchesSpecies = false;
+      if (_selectedSpecies == 'All') {
+        matchesSpecies = true;
+      } else if (_selectedSpecies == 'อื่นๆ') {
+        // ถ้าเลือก "อื่นๆ" ให้แสดงชนิดที่ไม่ใช่ สุนัข, แมว, นก
+        final mainSpecies = ['สุนัข', 'แมว', 'นก'];
+        matchesSpecies = !mainSpecies.contains(pet.species);
+      } else {
+        matchesSpecies = pet.species.toLowerCase() == _selectedSpecies.toLowerCase();
+      }
+
+      return matchesSearch && matchesSpecies;
+    }).toList();
+  }
+
+  // --- Actions ---
+
   Future<void> loadPets(String? token) async {
-    if (token == null) return;
+    if (token == null || token.isEmpty) {
+      _errorMessage = 'ไม่พบ Token กรุณาล็อกอินใหม่';
+      notifyListeners();
+      return;
+    }
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -31,7 +70,13 @@ class PetViewModel extends ChangeNotifier {
   }
 
   Future<bool> addPet(String? token, Pet pet) async {
-    if (token == null) return false;
+    if (token == null || token.isEmpty) {
+      _errorMessage = 'ไม่พบ Token กรุณาล็อกอินใหม่';
+      notifyListeners();
+      return false;
+    }
+
+    _errorMessage = null;
     try {
       final newPet = await _apiService.createPet(token, pet);
       _pets.add(newPet);
@@ -45,7 +90,9 @@ class PetViewModel extends ChangeNotifier {
   }
 
   Future<bool> deletePet(String? token, int id) async {
-    if (token == null) return false;
+    if (token == null || token.isEmpty) return false;
+
+    _errorMessage = null;
     try {
       await _apiService.deletePet(token, id);
       _pets.removeWhere((p) => p.id == id);
@@ -59,7 +106,9 @@ class PetViewModel extends ChangeNotifier {
   }
 
   Future<bool> addCareLog(String? token, CareLog log) async {
-    if (token == null) return false;
+    if (token == null || token.isEmpty) return false;
+
+    _errorMessage = null;
     try {
       await _apiService.createCareLog(token, log);
       await loadPets(token); // โหลดข้อมูลใหม่เพื่ออัปเดต List
@@ -72,7 +121,9 @@ class PetViewModel extends ChangeNotifier {
   }
 
   Future<void> toggleCareLog(String? token, int logId, bool isCompleted) async {
-    if (token == null) return;
+    if (token == null || token.isEmpty) return;
+
+    _errorMessage = null;
     try {
       await _apiService.toggleCareLogComplete(token, logId, isCompleted);
       await loadPets(token);
@@ -83,7 +134,9 @@ class PetViewModel extends ChangeNotifier {
   }
 
   Future<void> deleteCareLog(String? token, int logId) async {
-    if (token == null) return;
+    if (token == null || token.isEmpty) return;
+
+    _errorMessage = null;
     try {
       await _apiService.deleteCareLog(token, logId);
       await loadPets(token);
@@ -93,34 +146,15 @@ class PetViewModel extends ChangeNotifier {
     }
   }
 
-  String _searchQuery = '';
-String _selectedSpecies = 'All';
+  // ฟังก์ชันอัปเดตค่า Search Query
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
 
-String get searchQuery => _searchQuery;
-String get selectedSpecies => _selectedSpecies;
-
-// คำนวณรายการสัตว์เลี้ยงหลังผ่านการกรอง (Search & Filter)
-List<Pet> get filteredPets {
-  return _pets.where((pet) {
-    final matchesSearch = pet.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        pet.species.toLowerCase().contains(_searchQuery.toLowerCase());
-    
-    final matchesSpecies = _selectedSpecies == 'All' || 
-        pet.species.toLowerCase() == _selectedSpecies.toLowerCase();
-
-    return matchesSearch && matchesSpecies;
-  }).toList();
-}
-
-// ฟังก์ชันอัปเดตค่า Search Query
-void setSearchQuery(String query) {
-  _searchQuery = query;
-  notifyListeners();
-}
-
-// ฟังก์ชันอัปเดตค่า Filter Species
-void setSelectedSpecies(String species) {
-  _selectedSpecies = species;
-  notifyListeners();
-}
+  // ฟังก์ชันอัปเดตค่า Filter Species
+  void setSelectedSpecies(String species) {
+    _selectedSpecies = species;
+    notifyListeners();
+  }
 }

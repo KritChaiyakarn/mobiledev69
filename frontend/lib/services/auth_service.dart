@@ -1,16 +1,39 @@
 import 'package:openid_client/openid_client_browser.dart' as openid;
 
 class AuthService {
-  // URL ของ Django OIDC Provider
   static const String _issuerUrl = 'http://127.0.0.1:8000/openid';
-  
-  // ⚠️ อย่าลืมเปลี่ยนเป็น Client ID ที่คัดลอกมาจาก Django Admin
-  static const String clientId = 'YOUR_CLIENT_ID_HERE'; 
+  static const String clientId = '982825';
 
   openid.Client? _client;
   openid.Credential? _credential;
+  String? _extractedToken;
 
-  String? get accessToken => _credential?.response?['access_token'];
+  String? get accessToken =>
+      _credential?.response?['access_token'] ?? _extractedToken;
+
+  bool get isAuthenticated => accessToken != null && accessToken!.isNotEmpty;
+
+  AuthService() {
+    // อ่าน Token ทันทีตั้งแต่สร้างตัวแปร ก่อนที่ Flutter Router จะล้าง URL Hash
+    _extractTokenFromInitialUrl();
+  }
+
+  void _extractTokenFromInitialUrl() {
+    try {
+      final uri = Uri.base;
+      String rawString = uri.fragment.isNotEmpty ? uri.fragment : uri.query;
+
+      if (rawString.contains('access_token=')) {
+        final params = Uri.splitQueryString(rawString);
+        if (params.containsKey('access_token') &&
+            params['access_token']!.isNotEmpty) {
+          _extractedToken = params['access_token'];
+        }
+      }
+    } catch (e) {
+      print('Error extracting token from URL: $e');
+    }
+  }
 
   Future<void> initAuth() async {
     if (_client != null) return;
@@ -18,7 +41,6 @@ class AuthService {
     _client = openid.Client(issuer, clientId);
   }
 
-  // เรียกหน้า Login OIDC
   Future<void> login() async {
     await initAuth();
     final authenticator = openid.Authenticator(
@@ -28,19 +50,29 @@ class AuthService {
     authenticator.authorize();
   }
 
-  // ตรวจสอบการกลับมาจากหน้า Callback หลัง Login สำเร็จ
   Future<bool> handleCallback() async {
-    await initAuth();
-    final authenticator = openid.Authenticator(_client!);
-    final credential = await authenticator.credential;
-    if (credential != null) {
-      _credential = credential;
-      return true;
+    if (isAuthenticated) return true;
+
+    _extractTokenFromInitialUrl();
+    if (isAuthenticated) return true;
+
+    try {
+      await initAuth();
+      final authenticator = openid.Authenticator(_client!);
+      final credential = await authenticator.credential;
+      if (credential != null) {
+        _credential = credential;
+        return true;
+      }
+    } catch (e) {
+      print('OIDC client check skipped: $e');
     }
-    return false;
+
+    return isAuthenticated;
   }
 
   void logout() {
     _credential = null;
+    _extractedToken = null;
   }
 }

@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/pet_viewmodel.dart';
-import 'viewmodels/theme_viewmodel.dart'; // เพิ่มบรรทัดนี้
+import 'viewmodels/theme_viewmodel.dart';
 import 'views/login_view.dart';
 import 'views/home_view.dart';
-import 'views/callback_view.dart';
 
 void main() {
   runApp(
@@ -13,15 +12,15 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => PetViewModel()),
-        ChangeNotifierProvider(create: (_) => ThemeViewModel()), // เพิ่มบรรทัดนี้
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
       ],
-      child: const PetCareApp(),
+      child: const MyApp(),
     ),
   );
 }
 
-class PetCareApp extends StatelessWidget {
-  const PetCareApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,40 +31,41 @@ class PetCareApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       themeMode: themeVM.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.light,
-        ),
         useMaterial3: true,
+        colorSchemeSeed: Colors.teal,
+        brightness: Brightness.light,
       ),
       darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
         useMaterial3: true,
+        colorSchemeSeed: Colors.teal,
+        brightness: Brightness.dark,
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const AuthGuard(),
-        '/login': (context) => const LoginView(),
-        '/callback': (context) => const CallbackView(),
-      },
+      home: const AuthWrapper(),
     );
   }
 }
 
-class AuthGuard extends StatelessWidget {
-  const AuthGuard({super.key});
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final authVM = context.watch<AuthViewModel>();
+    return Consumer<AuthViewModel>(
+      builder: (context, authVM, child) {
+        if (authVM.isLoading) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
 
-    if (authVM.isAuthenticated) {
-      return const HomeView();
-    } else {
-      return const LoginView();
-    }
+        if (authVM.isLoggedIn) {
+          return const HomeView();
+        }
+
+        return const LoginView();
+      },
+    );
   }
 }
