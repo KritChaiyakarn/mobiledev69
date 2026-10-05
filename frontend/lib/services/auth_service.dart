@@ -1,4 +1,5 @@
 import 'package:openid_client/openid_client_browser.dart' as openid;
+import 'package:web/web.dart' as web;
 
 class AuthService {
   static const String _issuerUrl = 'http://127.0.0.1:8000/openid';
@@ -14,7 +15,6 @@ class AuthService {
   bool get isAuthenticated => accessToken != null && accessToken!.isNotEmpty;
 
   AuthService() {
-    // อ่าน Token ทันทีตั้งแต่สร้างตัวแปร ก่อนที่ Flutter Router จะล้าง URL Hash
     _extractTokenFromInitialUrl();
   }
 
@@ -74,5 +74,9 @@ class AuthService {
   void logout() {
     _credential = null;
     _extractedToken = null;
+
+    // ชี้ไปที่ endpoint /logout/ ใหม่ของ Django
+    web.window.location.href =
+        'http://127.0.0.1:8000/logout/?next=http://localhost:50000/';
   }
 }

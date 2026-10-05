@@ -16,9 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+# สร้าง ฟังก์ชัน Logout สำหรับเคลียร์ Session และ Redirect กลับมา Flutter
+def logout_view(request):
+    logout(request)
+    next_url = request.GET.get('next', 'http://localhost:50000/')
+    return redirect(next_url)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('openid/', include('oidc_provider.urls', namespace='openid')), # OIDC Auth Server[cite: 5, 7]
-    path('api/', include('pets.urls')), # REST API[cite: 10]
+    path('logout/', logout_view, name='logout'),  # <--- เพิ่มบรรทัดนี้
+    path('openid/', include('oidc_provider.urls', namespace='oidc_provider')),
+    path('api/', include('pets.urls')),  # หรือชื่อ app API ของคุณ
 ]
